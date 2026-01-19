@@ -25,7 +25,7 @@ const FormSchema = z.object({
 const CreateInvoice = FormSchema.omit({ id: true, date: true });
 
 export type State = {
-    data? : {
+    data?: {
         customerId?: string,
         amount?: number,
         status?: string
@@ -53,7 +53,7 @@ export async function createInvoice(prevState: State, formData: FormData) {
             message: 'Missing fields. Failed to Create Invoice.',
         }
     }
-     
+
     const { customerId, amount, status } = validatedFields.data;
     const amountInCents = amount * 100;
     const date = new Date().toISOString().split('T')[0];
@@ -77,7 +77,7 @@ export async function createInvoice(prevState: State, formData: FormData) {
 const UpdateInvoice = FormSchema.omit({ id: true, date: true });
 
 export async function updateInvoice(id: string, prevState: State, formData: FormData) {
-     const rawData = {
+    const rawData = {
         customerId: formData.get('customerId')?.toString(),
         amount: Number(formData.get('amount')?.toString()),
         status: formData.get('status')?.toString(),
@@ -116,36 +116,29 @@ export async function updateInvoice(id: string, prevState: State, formData: Form
 }
 
 export async function deleteInvoice(id: string) {
-    try {
-        await sql`
+    await sql`
             DELETE FROM invoices
             WHERE id = ${id}
         `;
-    } catch (error) {
-        console.error('Error deleting invoice:', error);
-        return {
-            message: 'Database Error: Failed to Delete Invoice.',
-        }
-    }
 
     revalidatePath('/dashboard/invoices');
 }
 
 export async function authenticate(
-  prevState: string | undefined,
-  formData: FormData,
+    prevState: string | undefined,
+    formData: FormData,
 ) {
-  try {
-    await signIn('credentials', formData);
-  } catch (error) {
-    if (error instanceof AuthError) {
-      switch (error.type) {
-        case 'CredentialsSignin':
-          return 'Invalid credentials.';
-        default:
-          return 'Something went wrong.';
-      }
+    try {
+        await signIn('credentials', formData);
+    } catch (error) {
+        if (error instanceof AuthError) {
+            switch (error.type) {
+                case 'CredentialsSignin':
+                    return 'Invalid credentials.';
+                default:
+                    return 'Something went wrong.';
+            }
+        }
+        throw error;
     }
-    throw error;
-  }
 }
